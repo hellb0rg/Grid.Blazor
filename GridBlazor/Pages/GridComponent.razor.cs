@@ -1,3 +1,4 @@
+using Blazored.Modal.Services;
 using GridBlazor.Pagination;
 using GridBlazor.Searching;
 using GridShared;
@@ -16,6 +17,8 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
+
+
 namespace GridBlazor.Pages
 {
     public partial class GridComponent<T>
@@ -32,6 +35,10 @@ namespace GridBlazor.Pages
         internal bool[] InitSubGrid;
         protected IQueryDictionary<Type> _filterComponents;
         protected T _item;
+        protected ComponentBase _BaseItem;
+
+
+
 
         // browser input type support
         internal bool _isDateTimeLocalSupported = false;
@@ -63,6 +70,7 @@ namespace GridBlazor.Pages
 
         internal event Action FilterButtonClicked;
 
+
         [Inject]
         private IJSRuntime jSRuntime { get; set; }
 
@@ -92,6 +100,8 @@ namespace GridBlazor.Pages
         public GridDeleteComponent<T> DeleteComponent { get; private set; }
 
         internal IGridColumn<T> FirstColumn { get; set; }
+
+        internal IModalService Modal { get; set; }
 
         internal ColumnOrderValue Payload { get; set; }
 
@@ -190,7 +200,7 @@ namespace GridBlazor.Pages
 
             FirstColumn = (IGridColumn<T>)Grid.Columns.FirstOrDefault();
 
-            if(OnRowClickedActions != null && OnRowClickedActions.Count() > 0)
+            if (OnRowClickedActions != null && OnRowClickedActions.Count() > 0)
             {
                 OnRowClicked = OnRowClickedActions.First();
             }
@@ -255,7 +265,7 @@ namespace GridBlazor.Pages
                 _isWeekSupported = await jSRuntime.InvokeAsync<bool>("gridJsFunctions.isWeekSupported");
                 _isMonthSupported = await jSRuntime.InvokeAsync<bool>("gridJsFunctions.isMonthSupported");
             }
-            
+
             if ((firstRender || _fromCrud) && gridmvc.Id != null && Grid.Keyboard)
             {
                 _fromCrud = false;
@@ -277,7 +287,7 @@ namespace GridBlazor.Pages
                 else
                     mouseEventArgs = new MouseEventArgs { CtrlKey = false };
 
-                RowClicked(0, Grid.ItemsToDisplay.First(), mouseEventArgs) ;
+                RowClicked(0, Grid.ItemsToDisplay.First(), mouseEventArgs);
             }
 
             if (firstRender)
@@ -287,7 +297,7 @@ namespace GridBlazor.Pages
 
             _shouldRender = false;
 
-            if(((CGrid<T>)Grid).OnAfterRender != null)
+            if (((CGrid<T>)Grid).OnAfterRender != null)
                 await ((CGrid<T>)Grid).OnAfterRender.Invoke(this, firstRender);
         }
 
@@ -297,12 +307,12 @@ namespace GridBlazor.Pages
             {
                 if (Mode == GridMode.Create)
                 {
-                    await CreateHandler();
+                    await CreateHandler(useCustomCreate);
                 }
                 else if (Mode == GridMode.Read)
                 {
                     var item = await ((CGrid<T>)Grid).CrudDataService.Get(Keys);
-                    ReadHandler(item);
+                    ReadHandler(item, useCustomRead);
                 }
                 else if (Mode == GridMode.Update)
                 {
@@ -311,7 +321,7 @@ namespace GridBlazor.Pages
                 else if (Mode == GridMode.Delete)
                 {
                     var item = await ((CGrid<T>)Grid).CrudDataService.Get(Keys);
-                    DeleteHandler(item);
+                    DeleteHandler(item, useCustomDelete);
                 }
             }
         }
@@ -404,7 +414,7 @@ namespace GridBlazor.Pages
         protected virtual async Task OnPagerChanged()
         {
             PagerEventArgs args = new PagerEventArgs();
-            PagerDTO pagerDTO = new PagerDTO(Grid.EnablePaging, Grid.Pager.PageSize, Grid.Pager.CurrentPage, 
+            PagerDTO pagerDTO = new PagerDTO(Grid.EnablePaging, Grid.Pager.PageSize, Grid.Pager.CurrentPage,
                 Grid.Pager.ItemsCount);
             args.Pager = pagerDTO;
 
@@ -443,7 +453,7 @@ namespace GridBlazor.Pages
                 Grid.AddFilterParameter(column, filters);
                 await UpdateGrid();
                 await OnFilterChanged();
-            }      
+            }
         }
 
         protected virtual async Task<bool> OnBeforeFilterChanged()
@@ -457,7 +467,7 @@ namespace GridBlazor.Pages
             }
             return true;
         }
-        
+
         protected virtual async Task OnFilterChanged()
         {
             // Filter changes must not init checked keys
@@ -508,7 +518,7 @@ namespace GridBlazor.Pages
 
             SearchEventArgs args = new SearchEventArgs();
             args.SearchValue = Grid.Settings.SearchSettings.SearchValue;
-            
+
             if (SearchChanged != null)
             {
                 await SearchChanged.Invoke(this, args);
@@ -533,7 +543,7 @@ namespace GridBlazor.Pages
         {
             ExtSortEventArgs args = new ExtSortEventArgs();
             args.SortValues = Grid.Settings.SortSettings.SortValues;
-            
+
             if (ExtSortChanged != null)
             {
                 await ExtSortChanged.Invoke(this, args);
@@ -568,38 +578,54 @@ namespace GridBlazor.Pages
             FilterButtonClicked.Invoke();
         }
 
-        public async Task CreateHandler()
+        public async Task CreateHandler(bool useCustomCreate)
         {
-            await SetSelectFields();
-            _item = (T)Activator.CreateInstance(typeof(T));
-            if (Grid.FixedValues != null)
+            if (useCustomCreate)
             {
-                foreach (var fixValue in Grid.FixedValues)
-                {
-                    _item.GetType().GetProperty(fixValue.Key).SetValue(_item, fixValue.Value);
-                }
-            }
-            ((CGrid<T>)Grid).Mode = GridMode.Create;
-            if (Grid.CreateComponent != null)
-                CrudRender = CreateCrudComponent();
-            else
-                CrudRender = null;
 
-            _shouldRender = true;
-            StateHasChanged();
+            }
+            else
+            {
+                await SetSelectFields();
+                _item = (T)Activator.CreateInstance(typeof(T));
+                if (Grid.FixedValues != null)
+                {
+                    foreach (var fixValue in Grid.FixedValues)
+                    {
+                        _item.GetType().GetProperty(fixValue.Key).SetValue(_item, fixValue.Value);
+                    }
+                }
+            ((CGrid<T>)Grid).Mode = GridMode.Create;
+                if (Grid.CreateComponent != null)
+                    CrudRender = CreateCrudComponent();
+                else
+                    CrudRender = null;
+                _shouldRender = true;
+                StateHasChanged();
+            }
+
+
         }
 
-        public void ReadHandler(object item)
+        public void ReadHandler(object item, bool useCustomRead)
         {
-            _item = (T)item;
-            ((CGrid<T>)Grid).Mode = GridMode.Read;
-            if (Grid.ReadComponent != null)
-                CrudRender = ReadCrudComponent();
+            if (useCustomRead)
+            {
+                return;
+            }
             else
-                CrudRender = null;
+            {
+                _item = (T)item;
+                ((CGrid<T>)Grid).Mode = GridMode.Read;
+                if (Grid.ReadComponent != null)
+                    CrudRender = ReadCrudComponent();
+                else
+                    CrudRender = null;
+                _shouldRender = true;
+                StateHasChanged();
+            }
 
-            _shouldRender = true;
-            StateHasChanged();
+
         }
 
         public async Task UpdateHandler(object item)
@@ -630,17 +656,28 @@ namespace GridBlazor.Pages
                 throw;
             }
         }
-        public void DeleteHandler(object item)
+        public async Task DeleteHandler(object item, bool useCustomDelete)
         {
-            _item = (T)item;
-            ((CGrid<T>)Grid).Mode = GridMode.Delete;
-            if (Grid.DeleteComponent != null)
-                CrudRender = DeleteCrudComponent();
+            if (useCustomDelete)
+            {
+                return;
+            }
             else
-                CrudRender = null;
+            {
+                _item = (T)item;
+                ((CGrid<T>)Grid).Mode = GridMode.Delete;
+                if (Grid.DeleteComponent != null)
+                    CrudRender = DeleteCrudComponent();
+                else
+                    CrudRender = null;
 
-            _shouldRender = true;
-            StateHasChanged();
+                _shouldRender = true;
+                StateHasChanged();
+            }
+
+
+
+
         }
 
         public async Task ExcelHandler()
@@ -810,7 +847,7 @@ namespace GridBlazor.Pages
             builder.CloseComponent();
         };
 
-        protected RenderFragment ButtonComponent(string label, Type componentType, IList<Action<object>> actions, 
+        protected RenderFragment ButtonComponent(string label, Type componentType, IList<Action<object>> actions,
             IList<Func<object, Task>> functions, object obj) => builder =>
         {
             builder.OpenComponent<CascadingValue<GridComponent<T>>>(++_sequence);
@@ -866,7 +903,7 @@ namespace GridBlazor.Pages
                     CrudRender = null;
                     _fromCrud = true;
                     await UpdateGrid();
-                }     
+                }
             }
             catch (Exception e)
             {
@@ -1105,7 +1142,7 @@ namespace GridBlazor.Pages
         public async Task UpdateGrid(bool ReloadData = true)
         {
             await OnBeforeRefreshGrid();
-            
+
             if (ReloadData) await Grid.UpdateGrid();
             SelectedRow = -1;
             SelectedRows.Clear();

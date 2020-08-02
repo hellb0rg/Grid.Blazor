@@ -1,0 +1,12 @@
+﻿@using GridBlazor.Resources
+@typeparam T
+@*<div class="grid-customcrud">
+    <button class="btn btn-primary btn-add" @onclick="(()=>Test.InvokeAsync(typeof(T)))">Lägg till @(typeof(T).Name == "EventModel" ? Strings.Event : Strings.Task)</button>
+    <button class="btn-primary btn btn-default">@Strings.Edit</button>
+    <button class="btn-danger btn btn-default">@Strings.Delete</button>
+</div>*@
+@code {
+    //@onclick="(()=>OnClickInsert.InvokeAsync(typeof(T)))"
+    [CascadingParameter(Name = "OnClickAddButton")] protected EventCallback<Type> Test { get; set; }
+
+}

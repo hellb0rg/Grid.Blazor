@@ -5,8 +5,12 @@
 @using GridShared
 @using GridShared.Columns
 @using System.Linq
+@using BlazorStrap
+@using Blazored.Modal;
+ 
 
 @typeparam T
+
 
 @if (Grid != null)
 {
@@ -82,7 +86,15 @@
                  @onkeyup="GridComponentKeyup">
                 <div class="@GridWrapCssClass">
                     <div class="row">
-                        <div class="row col-md-6">
+                        <div class="col">
+                            @if (Grid.EnableCustomCrud)
+                            {
+                                <div class="grid-customcrud">
+                                    <button class="btn btn-primary btn-add" @onclick="(()=>OnClickAddButton.InvokeAsync(typeof(T)))">Lägg till @(typeof(T).Name == "EventModel" ? Strings.Event : Strings.Task)</button>
+
+                                </div>
+                                //<CrudButtonToolbar  T="@T"></CrudButtonToolbar>
+                            }
                             @if (Grid.ClearFiltersButtonEnabled)
                             {
                                 <div class="grid-all-filters-clear">
@@ -92,7 +104,7 @@
                             @if (Grid.CreateEnabled)
                             {
                                 <div class="row grid-crud">
-                                    <button class="grid-button grid-button-add btn btn-sm btn-outline-secondary" type="button" title="@Strings.CreateItem" @onclick="CreateHandler" @onclick:stopPropagation></button>
+                                    <button class="grid-button grid-button-add btn btn-sm btn-outline-secondary" type="button" title="@Strings.CreateItem" @onclick="e=>CreateHandler(useCustomCreate)" @onclick:stopPropagation></button>
                                 </div>
                             }
                             @if (Grid.ExcelExport)
@@ -200,18 +212,33 @@
                                     int i = 0;
                                     if (Grid.GroupingEnabled)
                                     {
+
+
                                         <CascadingValue Value=@this Name="GridComponent">
                                             <GridGroupRowsComponent T="@T" Grid="@Grid" Values="@(new List<Tuple<string, object>>())" HasSubGrid="@_hasSubGrid" RequiredTotalsColumn="@_requiredTotalsColumn" ItemsToDisplay="@Grid.ItemsToDisplay" IsVisible="true" RowId="@i"></GridGroupRowsComponent>
                                         </CascadingValue>
                                     }
                                     else
                                     {
-                                        foreach (object item in Grid.ItemsToDisplay)
+                                        @foreach (object item in Grid.ItemsToDisplay)
                                         {
                                             int capturedI = i;
-                                            <CascadingValue Value=@this Name="GridComponent">
-                                                <GridRowComponent T="@T" Grid="@Grid" HasSubGrid="@_hasSubGrid" RequiredTotalsColumn="@_requiredTotalsColumn" Item="@item" GridPosition="@capturedI"></GridRowComponent>
-                                            </CascadingValue>
+
+                            <CascadingValue Value=@this Name="GridComponent">
+                                <GridRowComponent @ref="_component" Collapse=@( this.Collapsed ? "collapse": "") OnRowSelectCallback="(e=>ToggleCollapseItem(this,e))" T="@T" Grid="@Grid" HasSubGrid="@_hasSubGrid" RequiredTotalsColumn="@_requiredTotalsColumn" Item="@item" GridPosition="@capturedI"></GridRowComponent>
+                                <tr class=@(SelectedRow == capturedI || SelectedRows.Contains(capturedI) || (Grid.ComponentOptions.InitSelection && capturedI == 0 && SelectedRow == -1 && SelectedRows.Count == 0) ? "crud-button-table-row" : " crud-button-table-row-collapse")>
+                                    <td colspan=@(Grid.Columns.Count<IGridColumn>())>
+                                        <div>
+                                            <button class="crud-btn-view btn-primary btn btn-default" @onclick="()=>OnClickViewButton.InvokeAsync(item)">@Strings.View</button>
+                                            <button class="crud-btn-edit btn-primary btn btn-default" @onclick="()=>OnClickEditButton.InvokeAsync(item)">@Strings.Edit</button>
+                                            <button class="crud-btn-delete btn-danger btn btn-default" @onclick="()=>OnClickDeleteButton.InvokeAsync(item)">@Strings.Delete</button>
+                                        </div>
+
+                                    </td>
+                                </tr>
+                            </CascadingValue>
+
+
                                             i++;
                                         }
                                     }
@@ -223,7 +250,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="@GridFooterCssClass">
+                    <div class="@GridFooterCssClass row">
                         @if (Grid.ComponentOptions.ShowGridItemsCount)
                         {
                             <span class="@GridItemsCountCssClass">
@@ -237,6 +264,8 @@
                                 <GridPagerComponent T="@T" GridPager="@((GridPager)Grid.Pager)"></GridPagerComponent>
                             </CascadingValue>
                         }
+
+
                     </div>
                 </div>
             </div>
@@ -297,5 +326,41 @@
     else if (Grid.Mode == GridMode.ButtonComponent)
     {
         @CrudRender
+    }
+}
+
+@code
+{
+    [Parameter]
+    public EventCallback OnClickAddButton { get; set; }
+    [Parameter]
+    public EventCallback OnClickEditButton { get; set; }
+    [Parameter]
+    public EventCallback OnClickDeleteButton { get; set; }
+    [Parameter]
+    public EventCallback OnClickViewButton { get; set; }
+
+    [CascadingParameter]
+    public bool useCustomRead { get; set; }
+
+    [Parameter]
+    public bool useCustomCreate { get; set; }
+
+    [Parameter]
+    public bool useCustomDelete { get; set; }
+
+    [CascadingParameter]
+    public string InsertButtonText { get; set; }
+
+    private bool Collapsed = true;
+
+    bool IsOpen { get; set; }
+
+    List<GridRowComponent<T>> GridRowList = new List<GridRowComponent<T>>();
+
+    public GridRowComponent<T> _component { set { GridRowList.Add(value); } }
+
+    public void ToggleCollapseItem(GridComponent<T> _id, MouseEventArgs e)
+    {
     }
 }

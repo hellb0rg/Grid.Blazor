@@ -47,6 +47,7 @@ namespace GridBlazor
         private IEnumerable<object> _selectedItems;
         private int _displayingItemsCount = -1; // count of displaying items (if using pagination)
         private bool _enablePaging;
+        private bool _enableCustomCrud;
         private IGridPager _pager;
         private HttpClient _httpClient;
 
@@ -317,7 +318,15 @@ namespace GridBlazor
                 return _displayingItemsCount;
             }
         }
-
+        public bool EnableCustomCrud
+        {
+            get { return _enableCustomCrud; }
+            set
+            {
+                if (_enableCustomCrud == value) return;
+                _enableCustomCrud = value;
+            }
+        }
         /// <summary>
         ///     Enable or disable paging for the grid
         /// </summary>

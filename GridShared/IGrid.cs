@@ -29,6 +29,9 @@ namespace GridShared
         /// </summary>
         bool EnablePaging { get; }
 
+
+        
+
         /// <summary>
         ///     Set or get default value of searching
         /// </summary>

@@ -59,6 +59,7 @@ namespace GridBlazor
             //WithPaging(_source.Pager.PageSize);
         }
 
+
         #region IGridHtmlOptions<T> Members
 
         public IGridClient<T> WithGridItemsCount()
@@ -161,7 +162,11 @@ namespace GridBlazor
             _source.SearchingHiddenColumns = hiddenColumns;
             return this;
         }
-
+        public IGridClient<T> CustomCrud(bool enable)
+        {
+            _source.EnableCustomCrud = enable;
+            return this;
+        }
         public IGridClient<T> ExtSortable()
         {
             return ExtSortable(true);
@@ -211,6 +216,7 @@ namespace GridBlazor
             _source.ComponentOptions.Selectable = enable;
             _source.ComponentOptions.InitSelection = initSelection;
             _source.ComponentOptions.MultiSelectable = multiSelectable;
+            
             return this;
         }       
 

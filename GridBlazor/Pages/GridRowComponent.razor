@@ -1,11 +1,12 @@
 ﻿@using GridBlazor.Resources
 @using GridShared.Columns
+@using BlazorStrap
 
 @typeparam T
 
 @if (Grid.ComponentOptions.Selectable)
 {
-    <tr class="grid-row@(GridComponent.SelectedRow == GridPosition || GridComponent.SelectedRows.Contains(GridPosition) || (Grid.ComponentOptions.InitSelection && GridPosition == 0 && GridComponent.SelectedRow == -1 && GridComponent.SelectedRows.Count == 0) ? " grid-row-selected" : "") @Grid.GetRowCssClasses(Item)" @onclick="(args) => GridComponent.RowClicked(GridPosition, Item, args)" @onclick:stopPropagation>
+    <tr @onclick="(args) =>GridComponent.RowClicked(GridPosition, Item, args)" class="grid-row@(GridComponent.SelectedRow == GridPosition || GridComponent.SelectedRows.Contains(GridPosition) || (Grid.ComponentOptions.InitSelection && GridPosition == 0 && GridComponent.SelectedRow == -1 && GridComponent.SelectedRows.Count == 0) ? " grid-row-selected" : "") @Grid.GetRowCssClasses(Item)" @onclick:stopPropagation>
         @if (HasSubGrid)
         {
             <td class="@GridComponent.GridCellCssClass @GridComponent.GridSubGridCssClass" data-is-rendered="false" data-is-visible="false" data-name="" style="width:36.5px;" @onclick="SubGridClicked" @onclick:stopPropagation>
@@ -24,7 +25,7 @@
             <td class="@GridComponent.GridButtonCellCssClass" data-name="" style="width:35px;">
                 @if (Grid.ReadEnabled || (((CGrid<T>)Grid).FuncReadEnabled != null && ((CGrid<T>)Grid).FuncReadEnabled((T)Item)))
                 {
-                    <button class='grid-button grid-button-view btn btn-sm btn-outline-secondary' title="@Strings.ReadItem" @onclick="@(e => GridComponent.ReadHandler(Item))" type="button" @onclick:stopPropagation></button>
+                    <button class='grid-button grid-button-view btn btn-sm btn-outline-secondary' title="@Strings.ReadItem" @onclick="@(e => GridComponent.ReadHandler(Item,GridComponent.useCustomRead))" type="button" @onclick:stopPropagation></button>
                 }
             </td>
         }
@@ -42,7 +43,7 @@
             <td class="@GridComponent.GridButtonCellCssClass" data-name="" style="width:35px;">
                 @if (Grid.DeleteEnabled || (((CGrid<T>)Grid).FuncDeleteEnabled != null && ((CGrid<T>)Grid).FuncDeleteEnabled((T)Item)))
                 {
-                    <button class='grid-button grid-button-delete btn btn-sm btn-outline-secondary' title="@Strings.DeleteItem" @onclick="@(e => GridComponent.DeleteHandler(Item))" type="button" @onclick:stopPropagation></button>
+                    <button class='grid-button grid-button-delete btn btn-sm btn-outline-secondary' title="@Strings.DeleteItem" @onclick="@(e => GridComponent.DeleteHandler(Item,GridComponent.useCustomDelete))" type="button" @onclick:stopPropagation></button>
                 }
             </td>
         }
@@ -57,6 +58,18 @@
             </CascadingValue>
         }
     </tr>
+    @*<tr class=@(GridComponent.SelectedRow == GridPosition || GridComponent.SelectedRows.Contains(GridPosition) || (Grid.ComponentOptions.InitSelection && GridPosition == 0 && GridComponent.SelectedRow == -1 && GridComponent.SelectedRows.Count == 0) ? "crud-button-table-row" : " crud-button-table-row-collapse")>
+        <td colspan=@(Grid.Columns.Count<IGridColumn>())>
+            <div>
+                <button class="crud-btn-view btn-primary btn btn-default">@Strings.View</button>
+                <button class="crud-btn-edit btn-primary btn btn-default">@Strings.Edit</button>
+                <button class="crud-btn-delete btn-danger btn btn-default" @onclick=@(e => GridComponent.DeleteHandler(Item,GridComponent.useCustomDelete))>@Strings.Delete</button>
+            </div>
+
+        </td>
+    </tr>*@
+    //@onclick="e => onclick(GridPosition, e)"
+    //@onclick="(args) => OnRowSelectCallback.InvokeAsync(GridPosition, Item, args)"
 }
 else
 {
@@ -79,7 +92,7 @@ else
             <td class="@GridComponent.GridButtonCellCssClass" data-name="" style="width:35px;">
                 @if (Grid.ReadEnabled || (((CGrid<T>)Grid).FuncReadEnabled != null && ((CGrid<T>)Grid).FuncReadEnabled((T)Item)))
                 {
-                    <button class='grid-button grid-button-view btn btn-sm btn-outline-secondary' title="@Strings.ReadItem" @onclick="@(e => GridComponent.ReadHandler(Item))" type="button" @onclick:stopPropagation></button>
+                    <button class='grid-button grid-button-view btn btn-sm btn-outline-secondary' title="@Strings.ReadItem" @onclick="@(e => GridComponent.ReadHandler(Item,GridComponent.useCustomRead))" type="button" @onclick:stopPropagation></button>
                 }
             </td>
         }
@@ -97,7 +110,7 @@ else
             <td class="@GridComponent.GridButtonCellCssClass" data-name="" style="width:35px;">
                 @if (Grid.DeleteEnabled || (((CGrid<T>)Grid).FuncDeleteEnabled != null && ((CGrid<T>)Grid).FuncDeleteEnabled((T)Item)))
                 {
-                    <button class='grid-button grid-button-delete btn btn-sm btn-outline-secondary' title="@Strings.DeleteItem" @onclick="@(e => GridComponent.DeleteHandler(Item))" type="button" @onclick:stopPropagation></button>
+                    <button class='grid-button grid-button-delete btn btn-sm btn-outline-secondary' title="@Strings.DeleteItem" @onclick="@(e => GridComponent.DeleteHandler(Item,GridComponent.useCustomDelete))" type="button" @onclick:stopPropagation></button>
                 }
             </td>
         }
@@ -112,6 +125,8 @@ else
             </CascadingValue>
         }
     </tr>
+
+
 }
 @if (HasSubGrid)
 {
@@ -144,4 +159,20 @@ else
             <SubGridComponent T="@T" GridPosition="@GridPosition" Cols="@cols" Values="@values" OnRowClickedActions="onRowClickedActions"></SubGridComponent>
         </CascadingValue>
     </tr>
+}
+
+
+
+@code{
+    [Parameter]
+    public string Collapse { get; set; } = "collapse";
+
+
+    public bool Collapsed = true;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnRowSelectCallback
+    {
+        get; set;
+    }
 }

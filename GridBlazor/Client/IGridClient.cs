@@ -26,6 +26,12 @@ namespace GridBlazor
         IGridClient<T> WithPaging(int pageSize);
 
         /// <summary>
+        ///     Enable customCrud for grid
+        /// </summary>
+        /// <param name="pageSize">Setup the page size of the grid</param>
+        IGridClient<T> CustomCrud(bool enable);
+
+        /// <summary>
         ///     Enable paging for grid
         /// </summary>
         /// <param name="pageSize">Setup the page size of the grid</param>

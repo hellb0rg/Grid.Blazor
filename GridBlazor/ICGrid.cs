@@ -22,10 +22,20 @@ namespace GridBlazor
         /// </summary>
         GridOptions ComponentOptions { get; }
 
+
+
+
+
         /// <summary>
         ///     Pager for the grid
         /// </summary>
         IGridPager Pager { get; }
+
+        /// <summary>
+        ///     Enable custom crud controls
+        /// </summary>
+        bool EnableCustomCrud { get; }
+
 
         /// <summary>
         ///     Keys for subgrid

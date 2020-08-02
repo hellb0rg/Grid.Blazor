@@ -255,4 +255,10 @@
   <data name="IsNull" xml:space="preserve">
     <value>Is null</value>
   </data>
+  <data name="Event" xml:space="preserve">
+    <value>händelse</value>
+  </data>
+  <data name="Task" xml:space="preserve">
+    <value>arbetsuppgift</value>
+  </data>
 </root>
