@@ -179,6 +179,11 @@ namespace GridBlazor
             Func<T, bool> updateEnabled, Func<T, bool> deleteEnabled);
 
         /// <summary>
+        ///     Configure CRUD button labels
+        /// </summary>
+        IGridClient<T> SetCrudButtonLabels(string createLabel, string readLabel, string updateLabel, string deleteLabel);
+
+        /// <summary>
         ///     Setup the Create Component
         /// </summary>
         IGridClient<T> SetCreateComponent<TComponent>();
@@ -476,6 +481,11 @@ namespace GridBlazor
         ///    Add code to the end of OnAfterRenderAsync method of the component
         /// </summary>
         IGridClient<T> AddToOnAfterRender(Func<GridComponent<T>, bool, Task> OnAfterRender);
+
+        /// <summary>
+        ///    Setup the direction of grid
+        /// </summary>
+        IGridClient<T> SetDirection(GridDirection dir);
 
         /// <summary>
         ///    Get grid object

@@ -281,6 +281,16 @@ namespace GridBlazor
             return this;
         }
 
+        public IGridClient<T> SetCrudButtonLabels(string createLabel, string readLabel, string updateLabel, 
+            string deleteLabel)
+        {
+            _source.CreateLabel = createLabel;
+            _source.ReadLabel = readLabel;
+            _source.UpdateLabel = updateLabel;
+            _source.DeleteLabel = deleteLabel;
+            return this;
+        }
+
         public IGridClient<T> SetCreateComponent<TComponent>()
         {
             return SetCreateComponent<TComponent>(null, null, null);
@@ -671,6 +681,12 @@ namespace GridBlazor
         public IGridClient<T> AddToOnAfterRender(Func<GridComponent<T>, bool, Task> OnAfterRender)
         {
             _source.OnAfterRender = OnAfterRender;
+            return this;
+        }
+
+        public IGridClient<T> SetDirection(GridDirection dir)
+        {
+            _source.Direction = dir;
             return this;
         }
 

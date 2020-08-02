@@ -353,6 +353,11 @@ namespace GridBlazor
         public GridMode Mode { get; internal set; }
 
         /// <summary>
+        ///     Grid direction
+        /// </summary>
+        public GridDirection Direction { get; set; } = GridDirection.LTR;
+
+        /// <summary>
         ///     Get and set export to an Excel file
         /// </summary>
         public bool ExcelExport { get; internal set; }
@@ -614,6 +619,26 @@ namespace GridBlazor
         ///     Text in empty grid (no items for display)
         /// </summary>
         public string EmptyGridText { get; set; }
+
+        /// <summary>
+        ///     Create button label
+        /// </summary>
+        public string CreateLabel { get; set; }
+
+        /// <summary>
+        ///     Read button label
+        /// </summary>
+        public string ReadLabel { get; set; }
+
+        /// <summary>
+        ///     Update button label
+        /// </summary>
+        public string UpdateLabel { get; set; }
+
+        /// <summary>
+        ///     Delete button label
+        /// </summary>
+        public string DeleteLabel { get; set; }
 
         #region Custom row css classes
         public void SetRowCssClassesContraint(Func<T, string> contraint)
